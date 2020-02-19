@@ -24,6 +24,7 @@ fzeros <- f == 0
 g = c(1:3, 4, 3:1)
 h <- seq(from=10, to=-8, by=-2)
 i <- c(seq(from=1, to=1, length=3), seq(from=2, to=2, length=length(h)- 3))
+j <- rep(1, 100)
 
 corresp <- i[h > 0]
 
@@ -33,14 +34,15 @@ corresp <- i[h > 0]
 
 A <- matrix(1:16, 4, 4)
 B <- A[seq(from=2, to=4, by=2), seq(from=1, to=3, by=2)]
+C <- matrix(rep(1, nrow(A), 4, 4)
 
-C <- A[seq(from=1, to=4, length=2),]
-D <- A[, 3:2]
-E <- A[c(1, 3), c(2, 3)]
+D <- A[seq(from=1, to=4, length=2),]
+E <- A[, 3:2]
+F <- A[c(1, 3), c(2, 3)]
 
-F <- A[, -1]
-G <- A[-c(2, 3),]
-H <- F[, -c(2, 3)]
+G <- A[, -1]
+H <- A[-c(2, 3),]
+I <- F[, -c(2, 3)]
 
 x <- seq(from=10, to=-10, by=-2)
 dimx <- dim(x)
@@ -93,3 +95,6 @@ prp = function(lx, ly, Z, th, ph){
 p3y <- p3x <- seq(from=-1, to=1, length=20)
 cone <- function(x, y)sqrt(x^2 + y^2)
 Z3 = outer(p3x, p3y, cone)
+
+# divide the display window 
+par(mfrow = c(2, 2)

@@ -1,3 +1,12 @@
+# navigating different direcotries in the terminal doesn't change the 
+# current working directory of Rstudio
+# see the working direcotry with `getwd()`
+# change the working directory with `setwd()`
+# start editing a script with `file.edit('filename.R')`
+# if `filename.R` doesn't exist in the wd, it will be created
+
+#############################################################
+
 # vectors
 
 a <- c(1, 2, 3, 4, 5) 

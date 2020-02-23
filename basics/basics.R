@@ -94,7 +94,7 @@ prp = function(lx, ly, Z, th, ph){
 
 p3y <- p3x <- seq(from=-1, to=1, length=20)
 cone <- function(x, y)sqrt(x^2 + y^2)
-Z3 = outer(p3x, p3y, cone)
+Z3 <- outer(p3x, p3y, cone)
 
 # divide the display window 
 par(mfrow = c(2, 2)

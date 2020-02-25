@@ -141,33 +141,38 @@
 library(readr)
 library(tidyr)
 library(dplyr)
-M <- read_csv("imena-moski.csv", col_names=c("ime", 2008:2019),
-              skip=3, na="-", locale=locale(encoding="Windows-1250"))
-Z <- read_csv("imena-zenske.csv", col_names=c("ime", 2008:2019),
-              skip=3, na="-", locale=locale(encoding="Windows-1250"))
-imena.moski <- gather(M, -ime, key=leto, value=stevilo, na.rm=TRUE)
-imena.zenske <- gather(Z, -ime, key=leto, value=stevilo, na.rm=TRUE)
-imena.moski$leto <- parse_integer(imena.moski$leto)
-imena.zenske$leto <- parse_integer(imena.zenske$leto)
-imena.moski$spol <- factor("moski", levels=c("moski", "zenske"))
-imena.zenske$spol <- factor("zenske", levels=c("moski", "zenske"))
-imena <- rbind(imena.moski, imena.zenske)
 
-povprecje <- function(names) {
+# M <- read_csv("imena-moski.csv", col_names=c("ime", 2008:2019),
+#               skip=3, na="-", locale=locale(encoding="Windows-1250"))
+# Z <- read_csv("imena-zenske.csv", col_names=c("ime", 2008:2019),
+#               skip=3, na="-", locale=locale(encoding="Windows-1250"))
+# imena.moski <- gather(M, -ime, key=leto, value=stevilo, na.rm=TRUE)
+# imena.zenske <- gather(Z, -ime, key=leto, value=stevilo, na.rm=TRUE)
+# imena.moski$leto <- parse_integer(imena.moski$leto)
+# imena.zenske$leto <- parse_integer(imena.zenske$leto)
+# imena.moski$spol <- factor("moski", levels=c("moski", "zenske"))
+# imena.zenske$spol <- factor("zenske", levels=c("moski", "zenske"))
+# imena <- rbind(imena.moski, imena.zenske)
+
+# --------------------------- 1. podnaloga -------------------------------- 
+
+povprecje.macro <- function(X) {
   
-  N <- length(names)
-  averages <- rep(0, length = N)
-  gends <- levels(imena)
+  Y <- imena %>% group_by(ime, spol) %>% 
+    summarise(povprecje = sum(stevilo) / 12) 
   
-  for (i in 1:N) {
-    name <- names[i]
-    records <- imena$stevilo[imena$ime == name]
-    name.avg <- round(mean(records), digits = 5)
-    
-    averages[i] <- name.avg
-    }
+  # round the averages to at most 5 decimals 
+  Y$povprecje <- round(Y$povprecje, digits = 5)
+  return(Y)
+}
+
+povprecje <- function(vect.of.names) {
   
-  return(averages)
+  relevant.records <- imena[imena$ime %in% vect.of.names, ]
+  relevant.records <- relevant.records %>% group_by(ime, spol) %>%
+    summarise(povprecje = round(sum(stevilo) / 12, digits = 5))
+  
+  return(relevant.records)
 }
 
 # ================================================================@021598=
@@ -179,6 +184,33 @@ povprecje <- function(names) {
 # Funkcija naj vrne razpredelnico s stolpcema `leto` in `prebivalstvo`.
 # ========================================================================
 
+prebivalstvo <- function(years = (2008:2019)) {
+  
+  relevant.records <- imena[imena$leto %in% years, ] %>%
+    group_by(leto) %>% summarise(prebivalstvo = sum(stevilo))
+  
+  return(relevant.records)
+  
+}
+
+# ------------------------------------------------------------------
+
+rast.prebivalstva <- function(years = (2008:2019)) {
+  
+  prebivalstvo.po.letih <- prebivalstvo(2008:2019)$prebivalstvo
+  l <- length(2008:2019)
+  bools <- rep(TRUE, length = l-1)
+  
+  for (i in 2:l) {
+    if (prebivalstvo.po.letih[i-1] >= prebivalstvo.po.letih[i]){
+      bools[i-1] <- FALSE
+    }
+  } 
+  
+  leta.rasti <- (2009:2019)[bools & (2009:2019) %in% years]
+  return(leta.rasti)
+}
+
 # ================================================================@021599=
 # 3. podnaloga
 # Ustvari razpredelnico `MZ` z enim samim stolpcem `ime`, ki vsebuje tista
@@ -187,8 +219,15 @@ povprecje <- function(names) {
 # v stolpcu.
 # ========================================================================
 
+male.names <- imena$ime[imena$spol == 'moski']
+female.names <- imena$ime[imena$spol == 'zenske']
 
+uni <- unique(male.names[male.names %in% female.names])
+# to do the same things, use the following line of cawd: 
+# uni <- intersect(male.names, female.names)
 
+MZ <- data.frame(uni)
+colnames(MZ) <- c('ime')
 
 
 

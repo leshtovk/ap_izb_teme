@@ -58,7 +58,7 @@ cm.avgs <- as.data.frame(cm.avgs)
 vars <- colnames(college)
 colnames(el.avgs) <- colnames(cm.avgs) <- vars[2:(dim(college)[2] - 1)]
 
-# write the two dataframes to the disk as `.csv` filesre
+# write the two dataframes to the disk as `.csv` files
 # write.csv(el.avgs, 'elite.averages.csv')
 # write.csv(cm.avgs, 'common.averages.csv')
 

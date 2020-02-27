@@ -1,7 +1,7 @@
-#library(datasets)
-#library(caret)
-#
-#data("iris")
+library(datasets)
+library(caret)
+
+data("iris")
 trainIndex <- createDataPartition(y = iris$Species, p = 0.8, 
                                   list = FALSE, times = 1)
 

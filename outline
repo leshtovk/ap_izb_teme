@@ -1,0 +1,14 @@
+1. Simple supervised learning methods   
+    Literature: ISL  
+        3. Linear regression; problems 1-4, 8-13
+        4. Classification; problems 1, 4, 6, 10(q-d, g, i), 11(a-c, f, g), 1
+
+2. Measuring errors and choosing a predictive model
+    Literature: ISL
+        5. Resampling methods; problems 1-9
+
+3. Binary classification
+    Literature: ML
+        2. Binary classification 
+        3. Beyond binary classification 
+        12. Machine learning experiments 

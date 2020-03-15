@@ -19,7 +19,7 @@
     model.err <- test_data[, y] - model_pred
     model.rmse <- sqrt(mean(model.err^2))  
 
-# Train a least squares regression model with the help of repeated cross-referencing:
+# Train a least squares regression model with the help of repeated cross-validation:
 # The `train` function is part of the `caret` package 
     
     model <- train(
@@ -55,16 +55,274 @@
 
 # Train a logistic regression model with cross-validation
 # use the AUC as the basis for evaluating the model, not accuracy 
-    
+ 
+    myControl <- trainControl(
+        method = "cv",
+        number = 10,
+        summaryFunction = twoClassSummary,
+        classProbs = TRUE,
+        verboseIter = TRUE
+    )    
+
     model <- train(
-    y ~., 
-    data = my_data,
-    method = "glm"
-    trControl <- trainControl(
-          method = "cv",
-          number = 10,
-          summaryFunction = twoClassSummary,
-          classProbs = TRUE,
-          verboseIter = TRUE
+        y ~., 
+        data = my_data,
+        method = "glm"
+        trControl = myControl 
+    )
+
+-------------- preprocessing ---------------
+
+1. Start with median imputation
+2. Try KNN imputation if there is a pattern in the occurance of missing data 
+3. For linear models:
+    - Center and scale
+    - Try PCA and spacial sign transformations 
+4. Tree-based models don't require much preprocessing 
+    - Usually, just doing an imputation will be enough if there is missing data  
+
+# Median imputation
+# replace the missing data with the median of the respective predictor
+
+    median_model <- train(
+        x = my_x,
+        y = my_y,
+        method = "glm",
+        trControl = myControl,
+        preProcess = "medianImpute"
+    )
+
+# KNN imputation 
+# impute missing data based on similar non-missing data
+    
+    knn_model <- train(
+        x = my_x,
+        y = my_y, 
+        method = "glm",
+        trControl = myControl,
+        preProcess = "knnImpute"
+    )
+
+# compare the knn and median imputation     
+
+    models.resamples <- resamples(
+        x = list(median_model = median_model, knn_model = knn_model)
+    )
+
+    dotplot(models.resamples, metric = "ROC")
+
+# Standardization - make the mean of each column 0 and the standard deviation 1 
+# center - subtract the mean of the column from every value in the column 
+# scale - divide by the standard deviation
+
+    model <- train(
+        x = my_x,
+        y = my_y,
+        method = "glm",
+        trControl = myControl,
+        preProcess = c("medianImpute", "center", "scale")
+    )
+
+# remove constant, or nearly constant columns 
+
+    nzv_cols <- nearZeroVar(my_x, names = TRUE, freqCut = 2, uniqueCut = 20)
+    all_cols <- names(my_x)
+    my_x_small <- my_x[, setdiff(all_cols, nzv_cols)]  
+
+# perform this reduction automatically when training a method
+
+    model <- train(
+        x = my_x,
+        y = my_y,
+        method = "glm",
+        trControl = myControl,
+        preProcess = c("nzv", "medianImpute", "center", "scale")
+    )
+
+# remove only the zero-variance predictors,
+# but include all the rest in the model in an intelligent way, using PCA
+# many different low-variance variables can be combined into a single 
+# high variance PCA variable,
+# which might have a positive impact on the accuracy of the model
+
+    model <- train(
+        x = my_x, 
+        y = my_y, 
+        method = "glm", 
+        trControl = myControl, 
+        preProcess = c("zv", "medianImpute", "center", "scale", "pca")
+    )    
+
+------------ random forest --------------
+
+Random forests require tuning 
+    - Hyperparameters control how the model is fit
+    - Hyperparameters are selected before the model is fit
+    - The most important is `mtry` -- number of randomly selected variables at each split
+    - Lower value => more random
+    - Higher value => less random 
+
+We can pass custom tuning grids to the `tuneGrid` argument 
+Advantages:
+    - most flexible method for training `caret` models
+    - complete control over how the method is fit 
+Disadvantages:
+    - requires the most knowledge about the model 
+    - can dramatically increase run time 
+
+# fit a random forest model 
+
+    model <- train(
+        y ~., 
+        tuneLength = 3,
+        data = my_data, 
+        trControl = trainControl(
+            method = "cv",
+            number = 5, 
+            verboseIter = TRUE
+        )
+   )
+
+    plot(model)    
+
+# `tuneLength` tells `R` to explore more models along its tuning grid
+# a higher value may lead to a more accurate model, 
+# but it could take much more time to fit 
+
+# fit a random forest model with a custom tuning grid 
+
+    tuneGrid <- data.frame(
+        .mtry = c(2, 3, 7),
+        .splitrule = "variance",
+        .min.node.size = 5    
+    )
+
+    model <- train(
+        y ~., 
+        tuneGrid = tuneGrid, 
+        data = my_data, 
+        method = "ranger", 
+        trControl = trainControl(
+            method = "cv",
+            number = 5,
+            verboseIter = TRUE
         )
     )
+
+    plot(model)
+
+------------- glmnet --------------
+
+- Extension of `glm` models 
+- Place constraints on the parameters to prevent overfitting 
+- Helps deal with collinearity and small sample sizes
+- Combination of two types of models:
+    - Lasso regression: penalizes number of non-zero coefficients 
+    - Ridge regression: penalizes absolute magnitude of coefficients 
+- Attempts to find a simple model
+- Good for pairing with random forest models, as they tend to yield different results
+
+Parameters: 
+    - alpha [0, 1]: pure ridge to pure lasso    (mixing percentage)
+    - lambda (0, inf): size of the penalty    (regularization parameter)
+        - higher lambda => simpler method
+        - high enough lambda => oversimplified method
+
+# fit a `glmnet` model with a default tuning grid 
+# the default `tuneGrid` is 3 values for `alpha` and 3 values for `lambda` 
+
+    # create a custom `trainControl` object to predict class probabilities
+    # and uses AUC to perform grid search and select models
+    myControl <- trainControl(
+        method = "cv",
+        number = 10,
+        summaryFunction = twoClassSummary,
+        classProbs = TRUE,  # important 
+        verboseIter = TRUE
+    )
+
+    
+    model <- train(
+        y ~.,
+        data = my_data,
+        method = "glmnet",
+        trControl = myControl
+    )   
+
+    model.max.ROC <- max(model$results$ROC)
+
+# fit a `glmnet` model with a custom tuning grid and train control
+
+    model <- train(
+        y ~., 
+        data = my_data,
+        tuneGrid = expand.grid(
+            alpha = c(0, 1),
+            lambda = seq(from = 0.0001, to = 1, length = 20)
+        ),
+        method = "glmnet",
+        trControl = trainControl(
+            method = "cv", 
+            number = 10,
+            summaryFunction = twoClassSumary, 
+            classProbs = TRUE, 
+            verboseIter = TRUE    
+        )
+    )
+
+    plot(model)
+
+------------ selecting models --------------
+
+Best practice is to create a custom `trainControl` object and use it in all the methods.
+This way we can train/test all the methods on the exact same train/test sets. 
+
+Comparing models: 
+    - Make sure they were fit on the exact same data
+    - Selection criteria
+        - Highest average AUC
+        - Lowest standard deviation in AUC
+    - Use the `resamples()` function 
+
+    # create custom indices: myFolds 
+    myFolds <- createFolds(my_y, k = 5)
+
+    # create reusable `trainControl` object: myControl
+    myControl <- trainControl(
+        summaryFunction = twoclassSummnary,
+        classProbs = TRUE, 
+        verboseIter = TRUE, 
+        savePredictions = TRUE, 
+        index = myFolds
+    )
+
+    # fit a `glmnet` model
+    model_glmnet <- train(
+        x = my_x, 
+        y = my_y, 
+        metric = "ROC", 
+        method = "glmnet", 
+        trControl = myControl
+    )
+
+    # fit a random forest model
+    # `caret` does a good job of selecting possible values for `mtry`,
+    # so a custom tuning grid is not needed
+    model_df <- train(
+        x = my_x, 
+        y = my_y, 
+        metric = "ROC",
+        method = "ranger",
+        trControl = myControl
+    )
+
+    # compare the models
+    model_list <- list(glmnet = model_glmnet, rf = model_rf)
+    resamples <- resamples(model_list)
+    summary(resamples)
+
+    # box-and-whisker plot 
+    bwplot(resamples, metric = "ROC")
+    
+    # scatterplot
+    xyplot(resamples, metric = ROC"")

@@ -1,3 +1,25 @@
+----------------------- knn ----------------------
+
+    # create a train set and a test set with `caret`
+    index_train  <- createDataPartition(y, p = 0.6, list = FALSE)
+    train_data <- my_data[index_train, ]
+    test_data <- my_data[-idex_train, ]
+
+    # train a `knn` model, where the considered values for `k` are specified 
+    model_knn <- train(y ~., 
+                       data = train_data, 
+                       method = "knn", 
+                       tuneGrid = data.frame(k = 1:30)
+    )
+    
+    # plot how the accuracy of the classifier changes as `k` changes
+    plot(model_knn, ylim = c(0, 1), main = "k vs accuracy")
+
+    # compare the predictions of the classifier with the test data 
+    test_dim = dim(test_data) 
+    knn_predictions <- predict(model_knn, newdata = test_data)
+    knn_correct <- sum(knn_predictions == test_data[, test_dim[2]])
+    knn_correctness <- knn_correct / test_dim[1]
 
 --------------- linear regression -----------------
 

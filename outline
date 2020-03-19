@@ -12,3 +12,12 @@
         2. Binary classification 
         3. Beyond binary classification 
         12. Machine learning experiments 
+
+4. Decision trees and rules 
+    Literature: 
+        - ISL
+        8. Tree-based methods; problems 1, 3-6, 8(a-c), 9
+        - ML
+        4. Concept Learning 
+        5. Tree Models
+        6. Rule Models

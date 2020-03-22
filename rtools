@@ -1,11 +1,45 @@
+-------------- preparing the data ---------------
+
+    # create a random, reproducible data set
+    set.seed(123)
+    N <- 5000
+    m <- 10
+    xs <- matrix(rnorm(N * m), ncol = m)
+    my_data <- as.data.frame(xs)
+
+    Y <- # some formula y + rnorm(N, mean = 0, sd = 0.01)
+    my_data$Y <- Y
+    
+    # change the names of the columns to `Xi`
+    column_names <- character(m + 1) 
+    for (i in 1:m) {
+        column_names[i] <- sprinf("X%d", i)
+    }
+    column_names[m + 1] <- "Y"
+    colnames(my_data) <- column_names
+
+    # turn `Y` into a nominal variable with possible values "0" and "1"
+    Y <- data$Y
+    ones <- Y > mean(Y)
+    Y[ones] <- 1
+    Y[!ones] <- 0
+    data$Y <- as.factor(Y)
+
+    # create a training set and a test set without `caret` 
+    n <- nrow(my_data)
+    permuted.columns <- sample(n)
+    split <- round(n * 0.8)
+    train_data <- my_data[1:split, ]
+    test_data <- my_data[(split+1):n, ]
+
+    # create a training set and a test set with `caret`
+    train_inds  <- createDataPartition(y, p = 0.6, list = FALSE)
+    train_data <- my_data[train_inds, ]
+    test_data <- my_data[-train_inds, ]
+
 ----------------------- knn ----------------------
 
-    # create a train set and a test set with `caret`
-    index_train  <- createDataPartition(y, p = 0.6, list = FALSE)
-    train_data <- my_data[index_train, ]
-    test_data <- my_data[-idex_train, ]
-
-    # train a `knn` model, where the considered values for `k` are specified 
+    # train a `KNN` model, where the considered values for `k` are specified 
     model_knn <- train(y ~., 
                        data = train_data, 
                        method = "knn", 
@@ -24,13 +58,6 @@
 --------------- linear regression -----------------
 
 # Train a least squares regression model and calculate RMSE with built-in functions: 
-    
-    n <- nrow(my_data)
-    permuted.columns <- sample(n)
-    split <- round(n * 0.8)
-
-    train_data <- my_data[1:split, ]
-    test_data <- my_data[(split+1):n, ]
     
     model <- ln(y ~., data = train_data)
 

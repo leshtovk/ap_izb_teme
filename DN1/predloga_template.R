@@ -18,8 +18,8 @@ RNGkind(sample.kind = "Rounding")
 # Nekaj testov
 # Some tests
 #####################################
-test_runif()
-test_sample()
+# test_runif()
+# test_sample()
 
 
 #####################################
@@ -28,8 +28,8 @@ test_sample()
 #####################################
 # setwd("pot do mape (path to directory)")
 
-naloga_problem = 1
-source(sprintf("funkcije%d.R", naloga_problem))
+# naloga_problem = 1
+# source(sprintf("funkcije%d.R", naloga_problem))
 
 ####################################
 # Resi nalogo
@@ -69,6 +69,7 @@ test_runif = function(){
  if (sum(abs(x - x1)) > 10^-10){
   stop("Test runif ni ok (has failed)")
  }
+ print("runif works fine")
 }
 
 test_sample = function(){
@@ -78,4 +79,8 @@ test_sample = function(){
  if (sum(abs(x - x1)) > 0){
   stop("Test sample ni ok (has failed)")
  }
+ print("sample works fine")
 }
+
+# test_runif()
+# test_sample()

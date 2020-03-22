@@ -2,10 +2,15 @@
     Literature: ISL  
         3. Linear regression; problems 1-4, 8-13
         4. Classification; problems 1, 4, 6, 10(q-d, g, i), 11(a-c, f, g), 1
+    Labs: vaja1, vaja2
 
 2. Measuring errors and choosing a predictive model
-    Literature: ISL
+    Literature: 
+        - ISL
         5. Resampling methods; problems 1-9
+        - ML
+        12. Machine learning experiments 
+    Labs: vaja3
 
 3. Binary classification
     Literature: ML

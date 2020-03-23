@@ -1,0 +1,4 @@
+true_positives = 308
+auc = 0.943259462705622
+smallest_group = (1, a)
+knn_mr = 1

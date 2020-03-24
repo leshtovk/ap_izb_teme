@@ -1,3 +1,44 @@
+#########################
+# For section 1.3 
+#########################
+
+makePlots <- function(data, feature_names, response_names){
+    len_feat <- length(feature_names)
+    len_resp <- length(response_names)
+    
+    data_name <- deparse(substitute(data))
+    pdf("problem1_3.pdf")
+    
+    # `deparse(substitute(obj))` trick discovered from:
+    # paste(
+    #     "https://stackoverflow.com/questions/10520772/",
+    #     "in-r-how-to-get-an-objects-name-after-it-is-sent-to-a-function",
+    #     sep = ""
+    # )
+    
+    for (i in 1:len_resp){
+        resp_name <- response_names[i]
+        resp <- data[[resp_name]]
+        
+        for (j in 1:len_feat){
+            feat_name <- feature_names[j]
+            feat <- data[[feat_name]]
+
+            plot_label <- paste("data = ", data_name, sep = "")
+            plot(
+                feat, resp,
+                xlab = feat_name, ylab = resp_name, 
+                main = plot_label
+            )
+        }
+    }
+    dev.off()
+}
+
+#########################
+# For section 1.4 
+#########################
+
 findLevels <- function(col1, col2) {
     levels1 <- levels(col1)
     levels2 <- levels(col2)
@@ -43,6 +84,9 @@ countGroups <- function(col, levels){
     return(counter)
 }
 
+#########################
+# For section 1.5 
+#########################
 
 microRecall <- function(classes, y, y_predictions){
     n <- length(y)
@@ -56,3 +100,4 @@ microRecall <- function(classes, y, y_predictions){
     
     return(tp/p)
 }
+

@@ -1,37 +1,27 @@
 #####################################
-# nalozi knjiznice, ki jih potrebujes
 # load the libraries you need
 #####################################
 library(caret)
 library(caTools)
 
-# nalozi jih tukaj, ne po klicu RNGkind spodaj
 # load them here and not after the call of the RNGkind method below
 
 #########################################################################
-# Ignoriraj opozorilo (ignore the warning)
+# Ignore the warning
 # RNGkind(sample.kind = "Rounding") : non-uniform 'Rounding' sampler used
 #########################################################################
+
 RNGkind(sample.kind = "Rounding")
 
 #####################################
-# Nekaj testov
-# Some tests
-#####################################
-# test_runif()
-# test_sample()
-
-#####################################
-# Nalozi se potrebne funkcije
 # Load the necessary functions
 #####################################
-# setwd("pot do mape (path to directory)")
+# setwd("~/repos/itap/DN1/naloga1")
 
-naloga_problem = 1
-source(sprintf("functions%d.r", naloga_problem))
+problem = 1
+source(sprintf("functions%d.r", problem))
 
 ####################################
-# Resi nalogo
 # Solve the problem
 ####################################
 
@@ -52,8 +42,18 @@ true_positives <- sum((data1$y == 1) & (data1$z > phi))
 auc <- unname(colAUC(data1$z, data1$y, plotROC = FALSE)[1, 1])
 
 ################################################################################
-# 1.3 Important Feature
+# 1.3 Relevant Feature
 ################################################################################
+
+xs <- c("x1", "x2", "x3")
+makePlots(data = data1, feature_names = xs, response_names = "y")
+
+# from the plots we can see that `x2` is the predictor we are interested in
+x2_lower <- data1$x2[data1$y == "0"]
+x2_upper <- data1$x2[data1$y == "1"]
+phi_0 <- max(x2_lower)
+phi_1 <- min(x2_upper)
+max_int_len <- phi_1 - phi_0
 
 ################################################################################
 # 1.4 Modify the Data 
@@ -85,8 +85,7 @@ knn_mr <- microRecall(
 )
 
 ###############################################
-# Kode pod tem ne spreminjaj
-# Do not change the code below
+# The code below has been changed by me
 ###############################################
 
 test_runif = function(){

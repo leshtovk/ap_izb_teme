@@ -28,8 +28,6 @@ data2 <- read.csv("podatki2.csv")
 # 2.1 Basics
 ################################################################################
 
-print("fitting linear model")
-
 lin_model <- train(
     y ~., 
     data = data2, 
@@ -37,6 +35,7 @@ lin_model <- train(
 )
 
 err_lm <- modelError(model = lin_model, data = data2, response = data2$y)
+print(paste("Linear model error = ", err_lm, sep = ""))
 
 ################################################################################
 # 2.2 Relevant Features
@@ -44,6 +43,7 @@ err_lm <- modelError(model = lin_model, data = data2, response = data2$y)
 
 e_k0 <- find_k0(init_model = lin_model, data = data2, response = data2$y)
 e_k0_val <- unname(e_k0)
+print(paste("e_k0 = ", e_k0_val, sep = ""))
 
 ################################################################################
 # 2.3 Additional Features 
@@ -53,8 +53,6 @@ names <- colnames(data2)
 names <- names[-length(names)]
 quad_formula <- makeQuadFormula(names)
 
-print("fitting linear model with quadratic factors")
-
 quad_model <- train(
     quad_formula,
     data = data2, 
@@ -62,12 +60,31 @@ quad_model <- train(
 )
 
 err_qm <- modelError(model = quad_model, data = data2, response = data2$y)
+print(paste("Quadratic model error = ", err_qm, sep = ""))
 
 ################################################################################
 # 2.4 Regularization 
 ################################################################################
 
+beta_estimate <- ridgeCoefficients(data = data2, lambda = 0.01)
+alpha <- squaredNorm(beta_estimate)
+print(paste("alpha = ", alpha, sep = ""))
 
+################################################################################
+# 2.5 Magnitude of `lambda` 
+################################################################################
+
+g <- function(l) beta_norm(data = data2, lambda = l)
+
+# lambdas <- seq(2000.0, 2200.0, length = 1000)
+# g_lambdas <- betas(data2, lambdas)
+# plot(lambdas, g_lambdas)
+
+J1 <- leftStart(g, phi = alpha/10)
+J2 <- J1 + 1
+
+lambda_0_estimate <- bisectionSearch(g, J1, J2, alpha/10, 1*10^(-12))
+print(paste("Estimate for lambda_0 = ", lambda_0_estimate, sep = ""))
 
 ###############################################
 # The code below has been changed by me 

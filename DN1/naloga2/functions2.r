@@ -38,7 +38,6 @@ find_k0 <- function(init_model, data, response){
     
     print("computing values: e_k")
     for (i in 1:(p-1)){
-        print(paste("k = ", as.character(i), sep = ""))
         i_most_relevant <- relevantFeatures(coefs, k = i)
         formula <- makeFormula(i_most_relevant)
         temp_model <- train(
@@ -56,8 +55,6 @@ find_k0 <- function(init_model, data, response){
     }
     
     names(errors) <- err_names
-    print(errors)
-    
     ref <- unname(errors[p] * 1.1)
     e_k0 <- errors[which(errors < ref)[1]]
 }
@@ -75,3 +72,70 @@ makeQuadFormula <- function(names) {
     }
     as.formula(paste("y ~", paste(names_extended, collapse = "+")))
 }
+
+#########################
+# For section 2.4
+#########################
+
+ridgeCoefficients <- function(data, lambda){
+    data_dim <- dim(data)
+    p <- data_dim[2] - 1
+    
+    D <- unname(as.matrix(data))
+    X <- D[, 1:p]
+    X_t <- t(X)
+    y <- D[, p+1]
+
+    A <- (X_t %*% X) + (lambda * diag(p))
+    b <- X_t %*% y
+    
+    beta <- solve(A, b)
+}
+
+squaredNorm <- function(vect) { sum(vect^2) }
+
+#########################
+# For section 2.5
+#########################
+
+beta_norm <- function(data, lambda){
+    estimate <- ridgeCoefficients(data, lambda)
+    return(squaredNorm(estimate))
+}
+
+betas <- function(data, lambdas){
+    l <- length(lambdas)
+    sqnorms <- rep(0.0, times = l)
+    for (i in 1:l){
+        sqnorms[i] <- beta_norm(data, lambda = lambdas[i])
+    }
+    return(sqnorms)
+}
+
+leftStart <- function(f, phi){
+    x <- 0
+    while (f(x) > phi){
+        x <- x + 1
+    }
+    return(x - 1)
+}
+
+bisectionSearch <- function(f, left_start, right_start, phi, tol){
+    est1 <- left_start
+    est2 <- right_start
+    
+    while (abs(est1 - est2) >= tol){
+        s <- (est1 + est2)/2
+        if (f(s) > phi){
+            est1 <- s
+        }
+        else {
+            est2 <- s
+        }
+    }
+    return(est1)
+}
+
+
+
+

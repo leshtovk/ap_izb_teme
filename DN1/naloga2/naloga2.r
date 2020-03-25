@@ -1,37 +1,24 @@
 #####################################
-# nalozi knjiznice, ki jih potrebujes
 # load the libraries you need
 #####################################
 library(caret)
 # library(caTools)
 
-# nalozi jih tukaj, ne po klicu RNGkind spodaj
-# load them here and not after the call of the RNGkind method below
-
 #########################################################################
-# Ignoriraj opozorilo (ignore the warning)
+# Ignore the warning
 # RNGkind(sample.kind = "Rounding") : non-uniform 'Rounding' sampler used
 #########################################################################
 RNGkind(sample.kind = "Rounding")
 
 #####################################
-# Nekaj testov
-# Some tests
-#####################################
-# test_runif()
-# test_sample()
-
-#####################################
-# Nalozi se potrebne funkcije
 # Load the necessary functions
 #####################################
-# setwd("pot do mape (path to directory)")
+# setwd("~/repos/itap/DN1/naloga2")
 
-naloga_problem = 2
-source(sprintf("functions%d.r", naloga_problem))
+problem = 2
+source(sprintf("functions%d.r", problem))
 
 ####################################
-# Resi nalogo
 # Solve the problem
 ####################################
 
@@ -41,23 +28,22 @@ data2 <- read.csv("podatki2.csv")
 # 2.1 Basics
 ################################################################################
 
+print("fitting linear model")
+
 lin_model <- train(
     y ~., 
     data = data2, 
-    method = "lm",
-    trControl = trainControl(verboseIter = TRUE)
+    method = "lm"
 )
 
-lin_predictions <- predict(
-    lin_model, 
-    newdata = data2, 
-    type = "raw")
-
-err_lm <- model_rmse(model = lin_model, data = data2, response = data2$y)
+err_lm <- modelError(model = lin_model, data = data2, response = data2$y)
 
 ################################################################################
 # 2.2 Relevant Features
 ################################################################################
+
+e_k0 <- find_k0(init_model = lin_model, data = data2, response = data2$y)
+e_k0_val <- unname(e_k0)
 
 ################################################################################
 # 2.3 Additional Features 
@@ -67,18 +53,24 @@ names <- colnames(data2)
 names <- names[-length(names)]
 quad_formula <- makeQuadFormula(names)
 
+print("fitting linear model with quadratic factors")
+
 quad_model <- train(
     quad_formula,
     data = data2, 
-    method = "lm",
-    trControl = trainControl(verboseIter = TRUE)
+    method = "lm"
 )
 
-err_qm <- model_rmse(model = quad_model, data = data2, response = data2$y)
+err_qm <- modelError(model = quad_model, data = data2, response = data2$y)
+
+################################################################################
+# 2.4 Regularization 
+################################################################################
+
+
 
 ###############################################
-# Kode pod tem ne spreminjaj
-# Do not change the code below
+# The code below has been changed by me 
 ###############################################
 
 test_runif = function(){
